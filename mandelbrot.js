@@ -34,6 +34,19 @@ function getCachedNs(maxIterations) {
   return cachedNs;
 }
 
+/**
+ * 0    : blue   (hsl(240, 100%, 50%))
+ * 0.25 : cyan   (hsl(180, 100%, 50%))
+ * 0.5  : green  (hsl(120, 100%, 50%))
+ * 0.75 : yellow (hsl(60, 100%, 50%))
+ * 1    : red    (hsl(0, 100%, 50%))
+ * @returns
+ */
+function heatMapColorforValue(value) {
+  var h = (1.0 - value) * 240;
+  return 'hsl(' + h + ', 100%, 50%)';
+}
+
 function drawMandelbrot(maxIterations) {
   for (let x = 0; x < width; x++) {
     for (let y = 0; y < height; y++) {
@@ -42,8 +55,7 @@ function drawMandelbrot(maxIterations) {
         continue;
       }
       const n = Math.min(maxIterations, cachedNs[x + y * width]);
-      const color = 1 - n / maxIterations;
-      context.fillStyle = `rgb(${color * 255}, ${color * 255}, ${color * 255})`;
+      context.fillStyle = heatMapColorforValue(n / maxIterations);
       context.fillRect(x, y, 1, 1);
     }
   }
@@ -57,13 +69,8 @@ let maxIterations = 1;
 function step() {
   iterationCounter.textContent = maxIterations;
   drawMandelbrot(maxIterations);
-  if (maxIterations < 10) {
-    maxIterations++;
-  } else if (maxIterations < 50) {
-    maxIterations += 5;
-  } else if (maxIterations < 120) {
-    maxIterations += 10;
-  } else {
+  maxIterations++;
+  if (maxIterations > 150) {
     return;
   }
 
