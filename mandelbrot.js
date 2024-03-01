@@ -8,6 +8,8 @@ const RE_AXIS_END = 2;
 const IM_AXIS_START = -2;
 const IM_AXIS_END = 2;
 
+const MAX_ITERATIONS = 150;
+
 function getMandelbrotIterations(cRe, cIm, maxIterations) {
   let n = 0;
   let re = 0;
@@ -27,8 +29,11 @@ function getCachedNs(maxIterations) {
     for (let y = 0; y < height; y++) {
       const cRe = RE_AXIS_START + (x / width) * (RE_AXIS_END - RE_AXIS_START);
       const cIm = IM_AXIS_START + (y / height) * (IM_AXIS_END - IM_AXIS_START);
-      cachedNs[x + y * width] =
-        getMandelbrotIterations(cRe, cIm, maxIterations) - 1;
+      cachedNs[x + y * width] = getMandelbrotIterations(
+        cRe,
+        cIm,
+        maxIterations
+      );
     }
   }
   return cachedNs;
@@ -43,7 +48,10 @@ function getCachedNs(maxIterations) {
  * @returns
  */
 function heatMapColorforValue(value) {
-  var h = (1.0 - value) * 240;
+  if (value === 1) {
+    return 'rgb(0, 0, 0)';
+  }
+  const h = value * 240;
   return 'hsl(' + h + ', 100%, 50%)';
 }
 
@@ -51,7 +59,7 @@ function drawMandelbrot(maxIterations) {
   for (let x = 0; x < width; x++) {
     for (let y = 0; y < height; y++) {
       const cachedN = cachedNs[x + y * width];
-      if ((cachedN === 0 || cachedN === maxIterations) && maxIterations > 1) {
+      if (cachedN === maxIterations && maxIterations > 1) {
         continue;
       }
       const n = Math.min(maxIterations, cachedNs[x + y * width]);
@@ -61,16 +69,16 @@ function drawMandelbrot(maxIterations) {
   }
 }
 
-const cachedNs = getCachedNs(150);
+const cachedNs = getCachedNs(MAX_ITERATIONS);
 
 const iterationCounter = document.getElementById('iteration-counter');
 
 let maxIterations = 1;
 function step() {
-  iterationCounter.textContent = maxIterations;
+  iterationCounter.textContent = `${maxIterations} / ${MAX_ITERATIONS}`;
   drawMandelbrot(maxIterations);
   maxIterations++;
-  if (maxIterations > 150) {
+  if (maxIterations > MAX_ITERATIONS) {
     return;
   }
 
