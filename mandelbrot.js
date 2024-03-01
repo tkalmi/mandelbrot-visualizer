@@ -1,5 +1,5 @@
 const canvas = document.getElementById('mandelbrot');
-const ctx = canvas.getContext('2d');
+const context = canvas.getContext('2d');
 const width = canvas.width;
 const height = canvas.height;
 
@@ -27,11 +27,8 @@ function getCachedNs(maxIterations) {
     for (let y = 0; y < height; y++) {
       const cRe = RE_AXIS_START + (x / width) * (RE_AXIS_END - RE_AXIS_START);
       const cIm = IM_AXIS_START + (y / height) * (IM_AXIS_END - IM_AXIS_START);
-      cachedNs[x + y * width] = getMandelbrotIterations(
-        cRe,
-        cIm,
-        maxIterations
-      );
+      cachedNs[x + y * width] =
+        getMandelbrotIterations(cRe, cIm, maxIterations) - 1;
     }
   }
   return cachedNs;
@@ -40,21 +37,36 @@ function getCachedNs(maxIterations) {
 function drawMandelbrot(maxIterations) {
   for (let x = 0; x < width; x++) {
     for (let y = 0; y < height; y++) {
+      const cachedN = cachedNs[x + y * width];
+      if ((cachedN === 0 || cachedN === maxIterations) && maxIterations > 1) {
+        continue;
+      }
       const n = Math.min(maxIterations, cachedNs[x + y * width]);
-      const color = 255 * (1 - n / maxIterations);
-      ctx.fillStyle = `rgb(${color}, ${color}, ${color})`;
-      ctx.fillRect(x, y, 1, 1);
+      const color = 1 - n / maxIterations;
+      context.fillStyle = `rgb(${color * 255}, ${color * 255}, ${color * 255})`;
+      context.fillRect(x, y, 1, 1);
     }
   }
 }
 
-const cachedNs = getCachedNs(10_000);
+const cachedNs = getCachedNs(150);
+
+const iterationCounter = document.getElementById('iteration-counter');
 
 let maxIterations = 1;
 function step() {
-  console.log('N max:', maxIterations);
+  iterationCounter.textContent = maxIterations;
   drawMandelbrot(maxIterations);
-  maxIterations++;
+  if (maxIterations < 10) {
+    maxIterations++;
+  } else if (maxIterations < 50) {
+    maxIterations += 5;
+  } else if (maxIterations < 120) {
+    maxIterations += 10;
+  } else {
+    return;
+  }
+
   requestAnimationFrame(step);
 }
 
